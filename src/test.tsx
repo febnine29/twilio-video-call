@@ -80,7 +80,7 @@ const App = () => {
   const [props, setProps] = useState(initialState);
 
   // console.log("nxeeww", props.token)
-  console.log("news", API_URL)
+  console.log("newffffs", API_URL)
 
 
   return (
@@ -278,7 +278,7 @@ const VideoCallScreen = ({ navigation }: any) => {
   useEffect(() => {
     twilioVideo.current.connect({
       roomName: props.roomName,
-      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzkzOTgwZWRkYTFlYTNjYzE0MmMyNTI1MTEzNDEwZjg3LTE2Njk5NDk2NTciLCJncmFudHMiOnsiaWRlbnRpdHkiOiJkZCIsInZpZGVvIjp7fX0sImlhdCI6MTY2OTk0OTY1NywiZXhwIjoxNjY5OTUzMjU3LCJpc3MiOiJTSzkzOTgwZWRkYTFlYTNjYzE0MmMyNTI1MTEzNDEwZjg3Iiwic3ViIjoiQUM4MWQ1YWVhOTdhODMwYjQwMTRmNzMwYTY5NzNkZjM0MSJ9.zdU_0-agge_zhkvvtLwl5bF3Mhz_kYV6fiwe6zPc_bg',
+      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzFjZDY2ZTBlN2I1MDdiNDJlODE3NWZkM2IxNmJiNzZjLTE2Njk5NTIzNTgiLCJncmFudHMiOnsiaWRlbnRpdHkiOiJocyIsInZpZGVvIjp7InJvb20iOiJra2trIn19LCJpYXQiOjE2Njk5NTIzNTgsImV4cCI6MTY2OTk1NTk1OCwiaXNzIjoiU0sxY2Q2NmUwZTdiNTA3YjQyZTgxNzVmZDNiMTZiYjc2YyIsInN1YiI6IkFDMTAyNWQzZWIyZjhhZWY1ODNlNWMwMzQzZGRjZTQxZDUifQ.Bl8GkqFWIOucVQxwSgfAovi53s1OLNWTDLumUuMdWP8',
       // enableVideo:videoLocal,
       region: 'gll',
       bandwidthProfile: {
@@ -354,15 +354,10 @@ const VideoCallScreen = ({ navigation }: any) => {
       </View>
 
 
-      {
-        open ?
+     
           <View style={styles.optionsContainer}>
-            <View>
-              <TouchableOpacity onPress={() => setOpen(!open)} >
-                <FontAwesome name="minus" size={30} color="red" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.optionsbutton}>
+         
+            
               <TouchableOpacity style={[styles.button, { backgroundColor: '#ed3b2d', marginLeft: 10 }]} onPress={_onEndButtonPress}>
 
                 <MateriaLicons name="call-end" size={30} color="white" />
@@ -379,15 +374,10 @@ const VideoCallScreen = ({ navigation }: any) => {
                 {/* <Text style={styles.buttonText}>Flip</Text> */}
                 <MateriaLicons name="flip-camera-ios" size={30} color="white" />
               </TouchableOpacity>
-            </View>
+          
 
-          </View> :
-          <View>
-            <TouchableOpacity onPress={() => setOpen(!open)} >
-              <FontAwesome name="minus" size={30} color="red" />
-            </TouchableOpacity>
-          </View>
-      }
+          </View> 
+      
 
       <TwilioVideo
         ref={twilioVideo}
@@ -492,12 +482,6 @@ const styles = StyleSheet.create({
 
   optionsContainer: {
     backgroundColor: '#333333',
-    height: "12%",
-
-
-  },
-  optionsbutton: {
-
     flex: 1,
     padding: 20,
     position: 'absolute',
