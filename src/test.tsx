@@ -7,10 +7,10 @@
  */
 import 'react-native-gesture-handler';
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import axios from 'axios'
 import {
   StyleSheet,
   View,
+  Text,
   StatusBar,
   TouchableOpacity,
   TextInput,
@@ -19,11 +19,9 @@ import {
   Platform,
   ScrollView,
   Dimensions,
-  Text
+  useColorScheme
 } from 'react-native';
-// import {
-//   Button
-// } from 'native-base'
+
 import { API_URL } from '@env';
 import {
   checkMultiple,
@@ -34,13 +32,16 @@ import {
 } from 'react-native-permissions';
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 
 import {
   TwilioVideoLocalView,
   TwilioVideoParticipantView,
   TwilioVideo,
 } from 'react-native-twilio-video-webrtc';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import MateriaLicons from 'react-native-vector-icons/MaterialIcons';
+
 import HomeView from './Components/Home';
 import LoginPage from './Components/LoginPage';
 import RegisterPage from './Components/RegisterPage';
@@ -53,6 +54,7 @@ interface Iprops {
 
 interface IinitialState {
   isAudioEnabled: boolean,
+  isVideoEnabled: boolean,
   status: string,
   participants: Map<any, any>,
   videoTracks: Map<any, any>,
@@ -63,6 +65,7 @@ interface IinitialState {
 
 const initialState: IinitialState = {
   isAudioEnabled: true,
+  isVideoEnabled: true,
   status: 'disconnected',
   participants: new Map(),
   videoTracks: new Map(),
@@ -71,11 +74,14 @@ const initialState: IinitialState = {
   token: '',
 };
 
-const AppContext = React.createContext<Iprops>({props:initialState,setProps:null});
+const AppContext = React.createContext<Iprops>({ props: initialState, setProps: null });
 const dimensions = Dimensions.get('window');
-
 const App = () => {
   const [props, setProps] = useState(initialState);
+
+  // console.log("nxeeww", props.token)
+  console.log("news", API_URL)
+
 
   return (
     <>
@@ -83,38 +89,38 @@ const App = () => {
       <AppContext.Provider value={{ props, setProps }}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName='LoginPage'>
-            <Stack.Screen 
-              name="Home" 
-              component={HomeScreen} 
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
               options={{
                 headerShown: false
               }}
             />
-            <Stack.Screen 
-              name="LoginPage" 
-              component={LoginPage} 
+            <Stack.Screen
+              name="LoginPage"
+              component={LoginPage}
               options={{
                 headerShown: false
               }}
             />
-            <Stack.Screen 
-              name="RegisterPage" 
-              component={RegisterPage} 
+            <Stack.Screen
+              name="RegisterPage"
+              component={RegisterPage}
               options={{
                 headerShown: false,
-                ...TransitionPresets.SlideFromRightIOS,
+                // ...TransitionPresets.SlideFromRightIOS,
               }}
             />
-            <Stack.Screen 
-              name="Video Call" 
-              component={VideoCallScreen} 
+            <Stack.Screen
+              name="Video Call"
+              component={VideoCallScreen}
               options={{
                 headerShown: false
               }}
             />
-            <Stack.Screen 
-              name="HomeView" 
-              component={HomeView} 
+            <Stack.Screen
+              name="HomeView"
+              component={HomeView}
               options={{
                 headerShown: false
               }}
@@ -127,7 +133,7 @@ const App = () => {
 };
 
 const HomeScreen = ({ navigation }: any) => {
-  const { props, setProps } = useContext(AppContext);``
+  const { props, setProps } = useContext(AppContext);
 
   const _checkPermissions = (callback?: any) => {
     const iosPermissions = [PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.MICROPHONE];
@@ -201,8 +207,6 @@ const HomeScreen = ({ navigation }: any) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log(API_URL)
-  console.log('test--', props)
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -236,6 +240,7 @@ const HomeScreen = ({ navigation }: any) => {
                   fetch(`${API_URL}/getToken?userName=${props.userName}`)
                     .then((response) => {
                       if (response.ok) {
+                        // console.log(response.text().then())
                         response.text().then((jwt) => {
                           setProps({ ...props, token: jwt });
                           navigation.navigate('Video Call');
@@ -250,18 +255,12 @@ const HomeScreen = ({ navigation }: any) => {
                     .catch((error) => {
                       console.log('error', error);
                       Alert.alert('API not available');
-                      console.log('url', API_URL)
-                      console.log('username', props.userName)
                     });
                 });
               }}>
               <Text style={styles.buttonText}>Connect to Video Call</Text>
-              
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('HomeView')}>
             </TouchableOpacity>
           </View>
-        {/* <Button onPress={() => navigation.navigate('Home View')}>navigate</Button> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -270,20 +269,36 @@ const HomeScreen = ({ navigation }: any) => {
 
 const VideoCallScreen = ({ navigation }: any) => {
   const twilioVideo = useRef<any>(null);
+  console.log("ok1", twilioVideo)
+
+  const [open, setOpen] = useState(true)
+
   const { props, setProps } = useContext(AppContext);
 
   useEffect(() => {
     twilioVideo.current.connect({
       roomName: props.roomName,
-      accessToken:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzFjZDY2ZTBlN2I1MDdiNDJlODE3NWZkM2IxNmJiNzZjLTE2NjkzNDY4MzciLCJncmFudHMiOnsiaWRlbnRpdHkiOiJ2diIsInZpZGVvIjp7InJvb20iOiJra2trIn19LCJpYXQiOjE2NjkzNDY4MzcsImV4cCI6MTY2OTM1MDQzNywiaXNzIjoiU0sxY2Q2NmUwZTdiNTA3YjQyZTgxNzVmZDNiMTZiYjc2YyIsInN1YiI6IkFDMTAyNWQzZWIyZjhhZWY1ODNlNWMwMzQzZGRjZTQxZDUifQ.J8rb5RSRA3fGKpMCKb8iVBo57cjNMDDPAuscIRtaUf0',
+      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzkzOTgwZWRkYTFlYTNjYzE0MmMyNTI1MTEzNDEwZjg3LTE2Njk5NDk2NTciLCJncmFudHMiOnsiaWRlbnRpdHkiOiJkZCIsInZpZGVvIjp7fX0sImlhdCI6MTY2OTk0OTY1NywiZXhwIjoxNjY5OTUzMjU3LCJpc3MiOiJTSzkzOTgwZWRkYTFlYTNjYzE0MmMyNTI1MTEzNDEwZjg3Iiwic3ViIjoiQUM4MWQ1YWVhOTdhODMwYjQwMTRmNzMwYTY5NzNkZjM0MSJ9.zdU_0-agge_zhkvvtLwl5bF3Mhz_kYV6fiwe6zPc_bg',
+      // enableVideo:videoLocal,
+      region: 'gll',
+      bandwidthProfile: {
+        video: {
+          mode: 'grid',
+          maxSubscriptionBitrate: 2500000,
+          dominantSpeakerPriority: 'standard'
+        }
+      },
+      dominantSpeaker: true,
+      dominantSpeakerPriority: 'high',
+      maxAudioBitrate: 16000, //For music remove this line
+      preferredVideoCodecs: [{ codec: 'VP8', simulcast: true }],
+      networkQuality: { local: 1, remote: 2 }
     });
-    
+    console.log("ok", twilioVideo.current)
     setProps({ ...props, status: 'connecting' });
     return () => {
-      // _onEndButtonPress();
-      console.log('return1')
+      _onEndButtonPress();
     };
-    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -300,43 +315,79 @@ const VideoCallScreen = ({ navigation }: any) => {
 
   const _onFlipButtonPress = () => {
     twilioVideo.current.flipCamera();
+
   };
+
+  const _onDisableVideoButtonPress = () => {
+    twilioVideo.current
+      .setLocalVideoEnabled(!props.isVideoEnabled)
+      .then((isEnabled: any) => setProps({ ...props, isVideoEnabled: isEnabled }))
+  }
 
   return (
     <View style={styles.callContainer}>
-      {(props.status === 'connected' || props.status === 'connecting') && (
-        <View style={styles.callWrapper}>
-          {props.status === 'connected' && (
-            <View style={styles.remoteGrid}>
-              {Array.from(props.videoTracks, ([trackSid, trackIdentifier]) => (
-                <TwilioVideoParticipantView
-                  style={styles.remoteVideo}
-                  key={trackSid}
-                  trackIdentifier={trackIdentifier}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      )}
-      <View style={styles.optionsContainer}>
-        <TouchableOpacity style={styles.button} onPress={_onEndButtonPress}>
-          <Text style={styles.buttonText}>End</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={_onMuteButtonPress}>
-          <Text style={styles.buttonText}>
-            {props.isAudioEnabled ? 'Mute' : 'Unmute'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={_onFlipButtonPress}>
-          <Text style={styles.buttonText}>Flip</Text>
-        </TouchableOpacity>
+
+      <View style={{ flex: 1, marginBottom: '10%' }}>
+        {(props.status === 'connected' || props.status === 'connecting') && (
+          <View style={styles.callWrapper}>
+            {props.status === 'connected' && (
+              <View style={styles.remoteGrid}>
+                {Array.from(props.videoTracks, ([trackSid, trackIdentifier]) => (
+                  <TwilioVideoParticipantView
+                    style={styles.remoteVideo}
+                    key={trackSid}
+                    trackIdentifier={trackIdentifier}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        <TwilioVideoLocalView
+          enabled={props.status === 'connected'}
+
+          applyZOrder={true}
+          style={styles.localVideo}
+        />
+
       </View>
 
-      <TwilioVideoLocalView
-        enabled={props.status === 'connected'}
-        style={styles.localVideo}
-      />
+
+      {
+        open ?
+          <View style={styles.optionsContainer}>
+            <View>
+              <TouchableOpacity onPress={() => setOpen(!open)} >
+                <FontAwesome name="minus" size={30} color="red" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.optionsbutton}>
+              <TouchableOpacity style={[styles.button, { backgroundColor: '#ed3b2d', marginLeft: 10 }]} onPress={_onEndButtonPress}>
+
+                <MateriaLicons name="call-end" size={30} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={_onMuteButtonPress}>
+                <MateriaLicons name={props.isAudioEnabled ? 'mic' : 'mic-off'} size={30} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.button} onPress={_onDisableVideoButtonPress}>
+                <MateriaLicons name={props.isVideoEnabled ? 'videocam' : 'videocam-off'} size={30} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.button, { marginRight: 10 }]} onPress={_onFlipButtonPress}>
+                {/* <Text style={styles.buttonText}>Flip</Text> */}
+                <MateriaLicons name="flip-camera-ios" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
+
+          </View> :
+          <View>
+            <TouchableOpacity onPress={() => setOpen(!open)} >
+              <FontAwesome name="minus" size={30} color="red" />
+            </TouchableOpacity>
+          </View>
+      }
 
       <TwilioVideo
         ref={twilioVideo}
@@ -376,8 +427,8 @@ const VideoCallScreen = ({ navigation }: any) => {
         }}
       />
     </View>
-  );                                              
-};            
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -399,12 +450,13 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
   button: {
     padding: 10,
-    backgroundColor: 'blue',
-    borderRadius: 5,
+    backgroundColor: '#4a4a4a',
+    borderRadius: 50,
   },
   buttonText: {
     color: 'white',
@@ -418,7 +470,6 @@ const styles = StyleSheet.create({
   },
   callContainer: {
     flex: 1,
-    // zIndex: 1
   },
   callWrapper: {
     flex: 1,
@@ -426,26 +477,36 @@ const styles = StyleSheet.create({
   },
   remoteGrid: {
     flex: 1,
-    // zIndex: 2
   },
   remoteVideo: {
     flex: 1,
-    // zIndex: 2
   },
   localVideo: {
+    borderRadius: 30,
     position: 'absolute',
-    right: 50,
-    bottom: 50,
+    right: 20,
+    top: 30,
     width: dimensions.width / 4,
     height: dimensions.height / 4,
-    // zIndex: 10
   },
+
   optionsContainer: {
+    backgroundColor: '#333333',
+    height: "12%",
+
+
+  },
+  optionsbutton: {
+
+    flex: 1,
+    padding: 20,
     position: 'absolute',
     paddingHorizontal: 10,
     left: 0,
     right: 0,
-    bottom: 5,
+    bottom: 0,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
